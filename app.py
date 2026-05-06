@@ -10,12 +10,12 @@ example_text = "Ngày 06/5/2026 họp Chuyển đổi số tại Phòng Hội th
 if st.button(f"✨ Dùng thử nhanh: {example_text}"):
     st.session_state["main_input"] = example_text
 
-# Danh sách Emoji
-EMOJI_LIST = {
-    "Giáo dục & Y tế": "🎓 📖 📝 🏫 📚 🖊️ 🎒 👨‍🏫 👩‍🏫 🩺 🏥 💉 💊 🧬 🚑 🧪 🌡️ 🧠 🩹",
-    "Dữ liệu & Du lịch": "📈 📉 📊 📋 📂 💻 🔢 🖥️ 🔍 💡 ✈️ 🚗 🏨 🏖️ 🗺️ ⛰️ 🏟️ 🗼 📸 🌍 🚢 🚲",
-    "Hành chính": "📑 🏛️ ⚖️ 📨 📞 🏢 ✉️ 📜 🗃️ 🔐 📢 🖋️ 🗂️ 📅 💼 🔑 📁 🗳️ ✒️ 🗞️",
-    "Fanpage": "❤️ 🔥 ✅ 🚀 📍 📞 💎 ⚡ ✨ 🌟 🚩 📌 🎁 🛒 📩 💯 🆗 📣 💥 🌈 🎀 🎊"
+# Danh sách Emoji được tách rời để tạo nút bấm riêng
+EMOJI_GROUPS = {
+    "Giáo dục & Y tế": ["🎓", "📖", "📝", "🏫", "📚", "🖊️", "🎒", "👨‍🏫", "👩‍🏫", "🩺", "🏥", "💉", "💊", "🧬", "🚑", "🧪", "🌡️", "🧠", "🩹"],
+    "Dữ liệu & Du lịch": ["📈", "📉", "📊", "📋", "📂", "💻", "🔢", "🖥️", "🔍", "💡", "✈️", "🚗", "🏨", "🏖️", "🗺️", "⛰️", "🏟️", "🗼", "📸", "🌍", "🚢", "🚲"],
+    "Hành chính": ["📑", "🏛️", "⚖️", "📨", "📞", "🏢", "✉️", "📜", "🗃️", "🔐", "📢", "🖋️", "🗂️", "📅", "💼", "🔑", "📁", "🗳️", "✒️", "🗞️"],
+    "Fanpage": ["❤️", "🔥", "✅", "🚀", "📍", "📞", "💎", "⚡", "✨", "🌟", "🚩", "📌", "🎁", "🛒", "📩", "💯", "🆗", "📣", "💥", "🌈", "🎀", "🎊"]
 }
 
 def transform_text(text, style):
@@ -36,8 +36,7 @@ if input_text:
     output_html = transform_text(input_text, style)
     st.markdown("### ✅ Kết quả")
     
-    # SỬA CỠ CHỮ: Dùng 'inherit' để tự động bằng với cỡ chữ gốc của khung nhập liệu
-    # Nhúng nút Copy bằng JS trực tiếp vào khối kết quả để đảm bảo hoạt động
+    # Cỡ chữ inherit tự động khớp với khung nhập liệu
     custom_html = f"""
     <div id="wrapper" style="border: 1px solid #ddd; border-radius: 5px; padding: 10px; background-color: #f9f9f9;">
         <div id="content" style="font-size: inherit; font-family: sans-serif; color: #31333F; margin-bottom: 10px;">
@@ -47,7 +46,6 @@ if input_text:
             📋 Copy định dạng
         </button>
     </div>
-
     <script>
     function copyRichText() {{
         var range = document.createRange();
@@ -57,17 +55,34 @@ if input_text:
         window.getSelection().addRange(range);
         document.execCommand("copy");
         window.getSelection().removeAllRanges();
-        // Không dùng alert gây phiền, chỉ đổi màu nút để báo hiệu
         event.target.innerText = "✅ Đã copy!";
         setTimeout(() => {{ event.target.innerText = "📋 Copy định dạng"; }}, 2000);
     }}
     </script>
     """
-    components.html(custom_html, height=120)
+    components.html(custom_html, height=100)
 
 st.write("---")
 st.write("💡 **Emoji chọn lọc:**")
-tabs = st.tabs(list(EMOJI_LIST.keys()))
+
+# SỬA: Thay đổi cách copy Emoji để giữ màu và không copy cả hàng
+tabs = st.tabs(list(EMOJI_GROUPS.keys()))
 for i, tab in enumerate(tabs):
+    group_name = list(EMOJI_GROUPS.keys())[i]
     with tab:
-        st.code(EMOJI_LIST[list(EMOJI_LIST.keys())[i]], language="text")
+        cols = st.columns(10) # Chia thành các ô nhỏ để nhấn copy từng cái
+        for idx, emoji in enumerate(EMOJI_GROUPS[group_name]):
+            with cols[idx % 10]:
+                if st.button(emoji, key=f"emo_{group_name}_{idx}"):
+                    # Dùng mẹo ẩn khung copy để giữ màu cho Emoji
+                    components.html(f"""
+                        <script>
+                        const el = document.createElement('textarea');
+                        el.value = '{emoji}';
+                        document.body.appendChild(el);
+                        el.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(el);
+                        </script>
+                    """, height=0)
+                    st.toast(f"Đã copy {emoji}")

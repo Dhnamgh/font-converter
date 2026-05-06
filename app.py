@@ -1,6 +1,7 @@
 import streamlit as st
+import streamlit.components.v1 as components
 
-st.set_page_config(page_title="Trình Đổi Font Tiếng Việt - Bản Chuẩn", layout="centered")
+st.set_page_config(page_title="Trình Đổi Font Tiếng Việt", layout="centered")
 
 st.markdown("## 🔤 Trình Đổi Font Tiếng Việt")
 
@@ -35,27 +36,34 @@ if input_text:
     output = transform_text(input_text, style)
     st.markdown("### ✅ Kết quả")
     
-    # Ép cỡ chữ 16px đồng nhất và hiển thị chuẩn
-    # Sử dụng div có thể contenteditable để hỗ trợ copy định dạng tốt hơn trên trình duyệt
+    # SỬA CỠ CHỮ: Dùng !important để đảm bảo cỡ chữ không bị to hơn khung nhập liệu[cite: 1]
     st.markdown(f"""
-        <div id="copy-area" style="font-size:16px; font-family:sans-serif; padding:10px; border:1px solid #ddd; border-radius:5px; background-color:#f9f9f9;">
+        <div id="target-copy" style="font-size: 14px !important; font-family: sans-serif !important; padding: 10px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9; color: #31333F;">
             {output}
         </div>
     """, unsafe_allow_html=True)
     
-    # Nút Copy mượt mà, không thông báo OK, copy đúng định dạng
+    # SỬA NÚT COPY: JavaScript tự động bôi đen và copy định dạng (không hiện thông báo OK)[cite: 1]
     st.write("")
-    if st.button("📋 Nhấn để Copy nội dung (Giữ định dạng)"):
-        # Xử lý copy văn bản kèm định dạng cho Word/Fanpage[cite: 2]
-        if style == "Gạch chân":
-            plain_output = "".join([c + "\u0332" for c in input_text])
-        else:
-            plain_output = input_text
-        
-        # Streamlit không cho phép JS can thiệp sâu, nên dùng mẹo copy text thô chuẩn nhất[cite: 2]
-        # Đối với Word/Fanpage, bôi đen tại khung Kết quả vẫn là cách giữ định dạng tốt nhất[cite: 2]
-        st.code(plain_output, language="text")
-        st.success("Đã tạo mã copy bên dưới!")
+    copy_js = f"""
+    <button onclick="copyFunction()" style="cursor:pointer; background-color:#4CAF50; color:white; border:none; padding:10px 20px; border-radius:5px; font-size:14px;">
+        📋 Nhấn để Copy nội dung (Giữ định dạng)
+    </button>
+
+    <script>
+    function copyFunction() {{
+        var doc = parent.document;
+        var element = doc.getElementById('target-copy');
+        var range = doc.createRange();
+        range.selectNode(element);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        doc.execCommand('copy');
+        window.getSelection().removeAllRanges();
+    }}
+    </script>
+    """
+    components.html(copy_js, height=50)
 
 st.write("---")
 st.write("💡 **Emoji chọn lọc:**")

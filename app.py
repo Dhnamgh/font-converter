@@ -14,32 +14,37 @@ def build_map(upper, lower, digit):
         mapping[chr(ord("0") + i)] = chr(digit + i)
     return mapping
 
-# Tách riêng biệt dải mã để đảm bảo độ đậm nhạt đồng nhất giữa chữ và số
+# Sử dụng dải mã có độ phủ rộng nhất để tránh lỗi mã hóa
 FONT_STYLES = {
     "Chữ thường": {},
     "In đậm": build_map(0x1D400, 0x1D41A, 0x1D7CE),
-    "In nghiêng": build_map(0x1D608, 0x1D622, 0x1D614), # Dải mã Sans-serif Italic đồng bộ cả chữ và số
+    "In nghiêng": build_map(0x1D608, 0x1D622, 0x1D614),
     "Gạch chân": {}, 
 }
 
 def convert_text(text, style):
     if not text: return ""
     font = FONT_STYLES.get(style, {})
-    # Chuẩn hóa NFD để xử lý ký tự gốc và dấu riêng biệt
-    text_normalized = unicodedata.normalize('NFD', text)
     result = []
     
-    for c in text_normalized:
-        char = font.get(c, c)
-        if style == "Gạch chân" and c.strip():
-            # Sử dụng ký tự kết hợp gạch chân tiêu chuẩn[cite: 1]
-            char = c + "\u0332"
-        result.append(char)
+    for char in text:
+        # Kiểm tra nếu là ký tự Latin chuẩn hoặc số mới chuyển đổi
+        if char in font:
+            new_char = font[char]
+            if style == "Gạch chân":
+                new_char = char + "\u0332"
+            result.append(new_char)
+        elif style == "Gạch chân" and char.strip():
+            # Xử lý gạch chân cho cả chữ tiếng Việt có dấu
+            result.append(char + "\u0332")
+        else:
+            # Giữ nguyên chữ Đ, đ và các chữ có dấu để tránh lỗi "nhạt màu" hoặc ra mã lạ
+            result.append(char)
             
-    return unicodedata.normalize('NFC', "".join(result))
+    return "".join(result)
 
-# Chức năng dùng thử nhanh
-example_text = "Thành phố Hồ Chí Minh"
+# Dùng thử nhanh
+example_text = "Công văn số 33 ngày 09/03/2026"
 if st.button(f"✨ Dùng thử nhanh: {example_text}"):
     st.session_state["main_input"] = example_text
 
@@ -56,10 +61,10 @@ if input_text.strip():
     
     t1, t2, t3, t4 = st.tabs(["Giáo dục & Y tế", "Dữ liệu & Du lịch", "Hành chính", "Fanpage"])
     with t1:
-        st.code("🎓 📖 📝 🏫 📚 🖊️ 🎒 👨‍🏫 👩‍🏫 🩺 🏥 💉 💊 🧬 🚑 🧪 🌡️ 🧠 🩹", language="text")
+        st.code("🎓 📖 📝 🏫 📚 🖊️ 🎒 👨‍🏫 👩‍🏫 🩺 🏥 💉 💊 🧬 🚑 🧪 🌡️ 🧠 🩹 🏥 🏥", language="text")
     with t2:
-        st.code("📈 📉 📊 📋 📂 💻 🔢 🖥️ 🔍 💡 ✈️ 🚗 🏨 🏖️ 🗺️ ⛰️ 🏟️ 🗼 📸 🌍", language="text")
+        st.code("📈 📉 📊 📋 📂 💻 🔢 🖥️ 🔍 💡 ✈️ 🚗 🏨 🏖️ 🗺️ ⛰️ 🏟️ 🗼 📸 🌍 🚢 🚲", language="text")
     with t3:
-        st.code("📑 🏛️ ⚖️ 📨 📞 🏢 ✉️ 📜 🗃️ 🔐 📢 🖋️ 🗂️ 📅 💼 🔑 📁 🗳️", language="text")
+        st.code("📑 🏛️ ⚖️ 📨 📞 🏢 ✉️ 📜 🗃️ 🔐 📢 🖋️ 🗂️ 📅 💼 🔑 📁 🗳️ ✒️ 🗞️", language="text")
     with t4:
-        st.code("❤️ 🔥 ✅ 🚀 📍 📞 💎 ⚡ ✨ 🌟 🚩 📌 🎁 🛒 📩 💯 🆗 📣 💥 🌈", language="text")
+        st.code("❤️ 🔥 ✅ 🚀 📍 📞 💎 ⚡ ✨ 🌟 🚩 📌 🎁 🛒 📩 💯 🆗 📣 💥 🌈 🎀 🎊", language="text")

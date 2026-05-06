@@ -1,57 +1,60 @@
 import streamlit as st
 
-st.set_page_config(page_title="Trình Đổi Font Tiếng Việt Chuẩn", layout="centered")
+st.set_page_config(page_title="Trình Đổi Font Tiếng Việt - Bản Full", layout="centered")
 
-st.markdown("## 🔤 Trình Đổi Font Tiếng Việt (Tối Ưu)")
+# Phục hồi giao diện đầy đủ
+st.markdown("## 🔤 Trình Đổi Font Tiếng Việt")
 
-# Hàm tạo bản đồ ký tự chuẩn, tránh dải mã gây lỗi số
-def get_font_map(style):
-    upper_base = {"In đậm": 0x1D400, "In nghiêng": 0x1D434}
-    lower_base = {"In đậm": 0x1D41A, "In nghiêng": 0x1D44E}
-    digit_base = {"In đậm": 0x1D7CE, "In nghiêng": 0x1D7CE} # Giữ số đứng cho dễ đọc
-    
-    mapping = {}
-    if style in upper_base:
-        for i in range(26):
-            mapping[chr(ord("A") + i)] = chr(upper_base[style] + i)
-            mapping[chr(ord("a") + i)] = chr(lower_base[style] + i)
-        for i in range(10):
-            mapping[chr(ord("0") + i)] = chr(digit_base[style] + i)
-    return mapping
+# Phục hồi tính năng "Dùng thử nhanh"
+example_text = "Ngày 06/5/2026 họp Chuyển đổi số tại Phòng Hội thảo"
+if st.button(f"✨ Dùng thử nhanh: {example_text}"):
+    st.session_state["main_input"] = example_text
 
-def convert_text(text, style):
-    if style == "Chữ thường" or not text:
+# Phục hồi danh sách Emoji đầy đủ từ các bản trước
+EMOJI_LIST = {
+    "Giáo dục & Y tế": "🎓 📖 📝 🏫 📚 🖊️ 🎒 👨‍🏫 👩‍🏫 🩺 🏥 💉 💊 🧬 🚑 🧪 🌡️ 🧠 🩹",
+    "Dữ liệu & Du lịch": "📈 📉 📊 📋 📂 💻 🔢 🖥️ 🔍 💡 ✈️ 🚗 🏨 🏖️ 🗺️ ⛰️ 🏟️ 🗼 📸 🌍 🚢 🚲",
+    "Hành chính": "📑 🏛️ ⚖️ 📨 📞 🏢 ✉️ 📜 🗃️ 🔐 📢 🖋️ 🗂️ 📅 💼 🔑 📁 🗳️ ✒️ 🗞️",
+    "Fanpage": "❤️ 🔥 ✅ 🚀 📍 📞 💎 ⚡ ✨ 🌟 🚩 📌 🎁 🛒 📩 💯 🆗 📣 💥 🌈 🎀 🎊"
+}
+
+def transform_text(text, style):
+    if not text or style == "Chữ thường":
         return text
     
-    # Xử lý riêng cho Gạch chân để liền mạch nhất có thể
-    if style == "Gạch chân":
-        return "".join([c + "\u0332" if c != " " else " \u0332" for c in text])
+    # Sử dụng HTML để ép hiển thị Bold/Italic/Underline đồng nhất cho tiếng Việt
+    # Cách này giúp chữ Đ và các chữ có dấu không bao giờ bị nhạt hay lỗi ô vuông
+    if style == "In đậm":
+        return f"<b>{text}</b>"
+    elif style == "In nghiêng":
+        return f"<i>{text}</i>"
+    elif style == "Gạch chân":
+        return f"<u>{text}</u>"
+    return text
 
-    font_map = get_font_map(style)
-    result = ""
-    for char in text:
-        # Chỉ chuyển đổi ký tự Latin không dấu để tránh lệch màu "nhạt - đậm"
-        if char in font_map:
-            result += font_map[char]
-        else:
-            # Giữ nguyên ký tự tiếng Việt có dấu để bảo toàn độ hiển thị chuẩn
-            result += char
-    return result
-
-# Giao diện
-input_text = st.text_area("📌 Nhập nội dung", placeholder="Ví dụ: Công văn số 33 ngày 09/03/2026...", height=120)
+# Nhập liệu
+input_text = st.text_area("📌 Nhập nội dung", height=120, key="main_input")
 style = st.radio("🎨 Chọn kiểu chữ", ["Chữ thường", "In đậm", "In nghiêng", "Gạch chân"], horizontal=True)
 
 if input_text:
-    output = convert_text(input_text, style)
+    output = transform_text(input_text, style)
     st.markdown("### ✅ Kết quả")
-    # Sử dụng st.code để người dùng dễ dàng copy không lỗi định dạng[cite: 1]
-    st.code(output, language="text")
+    
+    # Hiển thị trực quan để xem độ đậm/nghiêng/gạch chân liền mạch
+    st.markdown(f"<div style='font-size:1.2rem; padding:10px; border:1px solid #ddd; border-radius:5px;'>{output}</div>", unsafe_allow_html=True)
+    
+    # Cung cấp dạng text thuần (Unicode Combined) để copy đi nơi khác
+    st.info("Dưới đây là mã để bạn copy vào Facebook/Word:")
+    if style == "Gạch chân":
+        plain_output = "".join([c + "\u0332" for c in input_text])
+    else:
+        # Nếu không phải gạch chân, bản này ưu tiên hiển thị chuẩn tiếng Việt 100%
+        plain_output = input_text 
+    st.code(plain_output, language="text")
 
 st.write("---")
-st.write("💡 **Bộ Emoji chuyên dụng:**")
-t1, t2 = st.tabs(["Hành chính & Y tế", "Fanpage & Nổi bật"])
-with t1:
-    st.code("📑 🏛️ ⚖️ 🏥 🩺 💊 📋 📂 ✉️ 📜 📅 💼 🔑 📁", language="text")
-with t2:
-    st.code("❤️ 🔥 ✅ 🚀 📍 📞 💎 ⚡ ✨ 🌟 🚩 📌 🎁 📩 💯", language="text")
+st.write("💡 **Emoji chọn lọc đầy đủ:**")
+tabs = st.tabs(list(EMOJI_LIST.keys()))
+for i, tab in enumerate(tabs):
+    with tab:
+        st.code(EMOJI_LIST[list(EMOJI_LIST.keys())[i]], language="text")

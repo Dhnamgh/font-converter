@@ -1,9 +1,9 @@
 import streamlit as st
 import unicodedata
 
-st.set_page_config(page_title="Đổi Font Chữ Pro", layout="centered")
+st.set_page_config(page_title="Đổi Font Chữ Tiếng Việt", layout="centered")
 
-st.title("🔤 Trình Đổi Font Chữ Tiếng Việt")
+st.title("🔤 Trình Đổi Font Facebook Tiếng Việt")
 
 def build_font_map(start_upper, start_lower=None):
     font_map = {}
@@ -13,51 +13,47 @@ def build_font_map(start_upper, start_lower=None):
             font_map[chr(ord("a") + i)] = chr(start_lower + i)
     return font_map
 
-# Sử dụng bộ mã Serif cho in nghiêng để tăng khả năng tương thích
+# Sử dụng các dải mã có độ tương thích cao hơn
 FONT_STYLES = {
     "Chữ thường": {},
-    "In đậm": build_font_map(0x1D400, 0x1D41A),
-    "In nghiêng": build_font_map(0x1D434, 0x1D44E), 
-    "IN HOA ĐẬM": build_font_map(0x1D400),
-    "IN HOA NGHIÊNG": build_font_map(0x1D434),
+    "In đậm (Sans)": build_font_map(0x1D5EE, 0x1D608), # Kiểu Sans-serif đậm thường bền hơn
+    "In đậm (Serif)": build_font_map(0x1D400, 0x1D41A),
+    "In nghiêng": build_font_map(0x1D434, 0x1D44E),
+    "Gạch chân": {}, # Placeholder
 }
 
-def remove_diacritics(text):
-    """Loại bỏ hoàn toàn dấu tiếng Việt"""
-    normalized = unicodedata.normalize('NFD', text)
-    return "".join([c for c in normalized if not unicodedata.combining(c)])
-
-def convert_text(text, style):
-    font = FONT_STYLES[style]
+def convert_text_pro(text, style):
+    font = FONT_STYLES.get(style, {})
     if not font:
         return text
     
-    # CHIẾN THUẬT: Nếu là IN HOA, ta bỏ dấu để tránh dính chữ (giống các Fanpage lớn)
-    if "IN HOA" in style:
-        text = remove_diacritics(text).upper()
-        result = "".join([font.get(c, c) for c in text])
-        return result
-
-    # Với in đậm/nghiêng thường: Dùng kỹ thuật tách dấu (NFD)
+    # Giữ nguyên dấu bằng cách tách NFD
     text_normalized = unicodedata.normalize('NFD', text)
     result = []
+    
     for c in text_normalized:
-        if c.upper() in font or c.lower() in font:
-            # Chỉ chuyển đổi phần thân chữ cái
-            target = c.upper() if c.isupper() else c
-            result.append(font.get(target, c))
+        # Kiểm tra xem có phải chữ cái Latin không
+        upper_c = c.upper()
+        if upper_c in font or c in font:
+            if c.isupper():
+                result.append(font.get(c, c))
+            else:
+                # Nếu không có font chữ thường, lấy font chữ hoa (cho các bản in hoa)
+                result.append(font.get(c, c))
         else:
+            # Giữ nguyên dấu phụ và các ký tự đặc biệt
             result.append(c)
             
     return unicodedata.normalize('NFC', "".join(result))
 
-input_text = st.text_area("📌 Nhập nội dung", height=120)
+input_text = st.text_area("📌 Nhập nội dung có dấu", height=120, placeholder="Ví dụ: Phòng họp Ban Giám hiệu")
 style = st.radio("🎨 Chọn kiểu chữ", list(FONT_STYLES.keys()), horizontal=True)
 
 if input_text.strip():
-    output_text = convert_text(input_text, style)
-    st.markdown("### ✅ Kết quả")
+    output_text = convert_text_pro(input_text, style)
+    st.markdown("### ✅ Kết quả (Đã giữ dấu)")
     st.code(output_text, language="text")
     
-    if "IN HOA" in style:
-        st.info("💡 Mẹo: Với kiểu IN HOA, hệ thống tự động bỏ dấu để hiển thị đẹp nhất trên mọi thiết bị.")
+    # Cảnh báo về lỗi hiển thị trên thiết bị
+    if "In nghiêng" in style:
+        st.warning("⚠️ Nếu bạn thấy ô vuông, đó là do điện thoại/máy tính của bạn không hỗ trợ font nghiêng toán học. Hãy thử kiểu 'In đậm (Sans)' thường có độ tương thích cao nhất.")

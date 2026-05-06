@@ -1,16 +1,16 @@
 import streamlit as st
+import streamlit.components.v1 as components
 
-st.set_page_config(page_title="Trình Đổi Font Tiếng Việt - Bản Full", layout="centered")
+st.set_page_config(page_title="Trình Đổi Font Tiếng Việt - Bản Chuẩn", layout="centered")
 
-# Phục hồi giao diện đầy đủ[cite: 2]
 st.markdown("## 🔤 Trình Đổi Font Tiếng Việt")
 
-# Phục hồi tính năng "Dùng thử nhanh"[cite: 2]
+# Phục hồi tính năng "Dùng thử nhanh"
 example_text = "Ngày 06/5/2026 họp Chuyển đổi số tại Phòng Hội thảo"
 if st.button(f"✨ Dùng thử nhanh: {example_text}"):
     st.session_state["main_input"] = example_text
 
-# Phục hồi danh sách Emoji đầy đủ[cite: 2]
+# Danh sách Emoji đầy đủ
 EMOJI_LIST = {
     "Giáo dục & Y tế": "🎓 📖 📝 🏫 📚 🖊️ 🎒 👨‍🏫 👩‍🏫 🩺 🏥 💉 💊 🧬 🚑 🧪 🌡️ 🧠 🩹",
     "Dữ liệu & Du lịch": "📈 📉 📊 📋 📂 💻 🔢 🖥️ 🔍 💡 ✈️ 🚗 🏨 🏖️ 🗺️ ⛰️ 🏟️ 🗼 📸 🌍 🚢 🚲",
@@ -21,8 +21,6 @@ EMOJI_LIST = {
 def transform_text(text, style):
     if not text or style == "Chữ thường":
         return text
-    
-    # Sử dụng HTML để đảm bảo chữ Đ và các chữ có dấu hiển thị chuẩn 100%[cite: 2]
     if style == "In đậm":
         return f"<b>{text}</b>"
     elif style == "In nghiêng":
@@ -31,7 +29,6 @@ def transform_text(text, style):
         return f"<u>{text}</u>"
     return text
 
-# Nhập liệu
 input_text = st.text_area("📌 Nhập nội dung", height=120, key="main_input")
 style = st.radio("🎨 Chọn kiểu chữ", ["Chữ thường", "In đậm", "In nghiêng", "Gạch chân"], horizontal=True)
 
@@ -39,23 +36,38 @@ if input_text:
     output = transform_text(input_text, style)
     st.markdown("### ✅ Kết quả")
     
-    # ĐÃ SỬA: Cỡ chữ kết quả 16px khớp với cỡ chữ nhập vào[cite: 2]
-    st.markdown(f"""
-        <div style='font-size:16px; padding:10px; border:1px solid #ddd; border-radius:5px; background-color: #f9f9f9;'>
+    # 1. SỬA CỠ CHỮ: Ép cỡ chữ 16px (bằng với khung nhập liệu)[cite: 2]
+    # Thêm ID 'copy-area' để JavaScript có thể tìm thấy và sao chép
+    result_html = f"""
+        <div id="copy-area" style="font-size:16px; font-family:sans-serif; padding:10px; border:1px solid #ddd; border-radius:5px; background-color:#f9f9f9; min-height:50px;">
             {output}
         </div>
-    """, unsafe_allow_html=True)
+    """
+    st.markdown(result_html, unsafe_allow_html=True)
     
-    # Cung cấp dạng text thuần để copy nhanh nếu cần[cite: 2]
-    st.info("Để giữ định dạng Đậm/Nghiêng sang Word/Fanpage, hãy bôi đen trực tiếp nội dung ở khung phía trên rồi Copy.")
-    if style == "Gạch chân":
-        plain_output = "".join([c + "\u0332" for c in input_text])
-    else:
-        plain_output = input_text 
-    st.code(plain_output, language="text")
+    # 2. SỬA NÚT COPY: Dùng JavaScript để copy kèm định dạng (Rich Text)
+    st.write("")
+    copy_button_html = """
+    <button onclick="copyRichText()" style="cursor:pointer; background-color:#4CAF50; color:white; border:none; padding:8px 16px; border-radius:4px; font-weight:bold;">
+        📋 Nhấn để Copy nội dung (Giữ định dạng)
+    </button>
+
+    <script>
+    function copyRichText() {
+        var range = document.createRange();
+        var referenceNode = parent.document.getElementById("copy-area");
+        range.selectNode(referenceNode);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        parent.document.execCommand("copy");
+        window.getSelection().removeAllRanges();
+        alert("Đã copy nội dung có định dạng!");
+    }
+    </script>
+    """
+    components.html(copy_button_html, height=50)
 
 st.write("---")
-# ĐÃ SỬA: Tên tiêu đề theo yêu cầu[cite: 2]
 st.write("💡 **Emoji chọn lọc:**")
 tabs = st.tabs(list(EMOJI_LIST.keys()))
 for i, tab in enumerate(tabs):

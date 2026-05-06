@@ -5,12 +5,12 @@ st.set_page_config(page_title="Trình Đổi Font Tiếng Việt", layout="cente
 
 st.markdown("## 🔤 Trình Đổi Font Tiếng Việt")
 
-# Dùng thử nhanh - GIỮ NGUYÊN
-example_text = "Ngày 06/5/2026 họp Chuyển đổi số tại Phòng Hội thảo"
-if st.button(f"✨ Dùng thử nhanh: {example_text}"):
+# Dùng thử nhanh
+example_text = "Thành phố Hồ Chí Minh, ngày 06/5/2026"
+if st.button(f"✨ Xem thử kết quả, nhấn/chọn: {example_text}"):
     st.session_state["main_input"] = example_text
 
-# Danh sách Emoji - GIỮ NGUYÊN
+# Danh sách Emoji
 EMOJI_GROUPS = {
     "Giáo dục & Y tế": ["🎓", "📖", "📝", "🏫", "📚", "🖊️", "🎒", "👨‍🏫", "👩‍🏫", "🩺", "🏥", "💉", "💊", "🧬", "🚑", "🧪", "🌡️", "🧠", "🩹"],
     "Dữ liệu & Du lịch": ["📈", "📉", "📊", "📋", "📂", "💻", "🔢", "🖥️", "🔍", "💡", "✈️", "🚗", "🏨", "🏖️", "🗺️", "⛰️", "🏟️", "🗼", "📸", "🌍", "🚢", "🚲"],
@@ -18,7 +18,7 @@ EMOJI_GROUPS = {
     "Fanpage": ["❤️", "🔥", "✅", "🚀", "📍", "📞", "💎", "⚡", "✨", "🌟", "🚩", "📌", "🎁", "🛒", "📩", "💯", "🆗", "📣", "💥", "🌈", "🎀", "🎊"]
 }
 
-# Hàm hiển thị HTML cho Word - GIỮ NGUYÊN[cite: 2]
+# Hàm hiển thị HTML cho Word 
 def transform_text(text, style):
     if not text or style == "Chữ thường":
         return text
@@ -30,7 +30,7 @@ def transform_text(text, style):
         return f"<u>{text}</u>"
     return text
 
-# SỬA LỖI: Hàm chuyển đổi Unicode hỗ trợ đầy đủ Tiếng Việt cho Fanpage/Zalo
+# Hàm chuyển đổi Unicode hỗ trợ đầy đủ Tiếng Việt cho Fanpage/Zalo
 def full_unicode_transform(text, style):
     if not text or style == "Chữ thường": return text
     
@@ -73,7 +73,7 @@ if input_text:
             {output_html}
         </div>
         <button onclick="copyAll()" style="cursor:pointer; background-color:#4CAF50; color:white; border:none; padding:5px 12px; border-radius:4px; font-size: 14px;">
-            📋 Nhấn để Copy (Dán được Fanpage/Zalo/Word)
+            📋 Nhấn để Copy (Dán vào Fanpage/Zalo/Word)
         </button>
     </div>
     <script>
@@ -104,3 +104,12 @@ for i, tab in enumerate(tabs):
                         {emoji}
                     </button>
                 """, height=40)
+st.write("---")
+st.markdown(
+    """
+    <div style="text-align: center; color: #888888; font-size: 0.9rem; padding: 20px;">
+        Copyright © 2026 Bản quyền thuộc về TS. Đào Hồng Nam
+    </div>
+    """, 
+    unsafe_allow_html=True
+)

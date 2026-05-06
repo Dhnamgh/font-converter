@@ -1,61 +1,62 @@
 import streamlit as st
 
-st.set_page_config(page_title="Trình Đổi Font Tiếng Việt", layout="centered")
+st.set_page_config(page_title="Trình Đổi Font Tiếng Việt - Bản Full", layout="centered")
 
+# Phục hồi giao diện đầy đủ[cite: 2]
 st.markdown("## 🔤 Trình Đổi Font Tiếng Việt")
 
-# Chức năng dùng thử nhanh
+# Phục hồi tính năng "Dùng thử nhanh"[cite: 2]
 example_text = "Ngày 06/5/2026 họp Chuyển đổi số tại Phòng Hội thảo"
 if st.button(f"✨ Dùng thử nhanh: {example_text}"):
     st.session_state["main_input"] = example_text
 
-# Từ điển ánh xạ Unicode để copy không bị mất định dạng[cite: 1]
-def get_unicode_map(style):
-    maps = {
-        "In đậm": (0x1D400, 0x1D41A, 0x1D7CE),
-        "In nghiêng": (0x1D434, 0x1D44E, 0x1D7CE)
-    }
-    if style not in maps: return {}
-    u_base, l_base, d_base = maps[style]
-    mapping = {chr(ord("A") + i): chr(u_base + i) for i in range(26)}
-    mapping.update({chr(ord("a") + i): chr(l_base + i) for i in range(26)})
-    mapping.update({chr(ord("0") + i): chr(d_base + i) for i in range(10)})
-    return mapping
-
-def convert_to_copyable(text, style):
-    if style == "Chữ thường": return text
-    if style == "Gạch chân": return "".join([c + "\u0332" for c in text])
-    
-    mapping = get_unicode_map(style)
-    # Giữ nguyên chữ có dấu để tránh lỗi font nhạt màu[cite: 1]
-    return "".join([mapping.get(c, c) for c in text])
-
-input_text = st.text_area("📌 Nhập nội dung", height=120, key="main_input")
-style = st.radio("🎨 Chọn kiểu chữ", ["Chữ thường", "In đậm", "In nghiêng", "Gạch chân"], horizontal=True)
-
-if input_text:
-    copyable_text = convert_to_copyable(input_text, style)
-    st.markdown("### ✅ Kết quả")
-    
-    # CSS ép cỡ chữ kết quả bằng với cỡ chữ nhập liệu[cite: 1]
-    st.markdown(f"""
-        <div style="font-size: 16px; font-family: sans-serif; padding: 10px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
-            {copyable_text}
-        </div>
-    """, unsafe_allow_html=True)
-    
-    st.write("")
-    st.info("Nhấn vào khung dưới để copy sang Word/Fanpage:")
-    st.code(copyable_text, language="text")
-
-st.write("---")
-st.write("💡 **Emoji chọn lọc:**")
+# Phục hồi danh sách Emoji đầy đủ[cite: 2]
 EMOJI_LIST = {
     "Giáo dục & Y tế": "🎓 📖 📝 🏫 📚 🖊️ 🎒 👨‍🏫 👩‍🏫 🩺 🏥 💉 💊 🧬 🚑 🧪 🌡️ 🧠 🩹",
     "Dữ liệu & Du lịch": "📈 📉 📊 📋 📂 💻 🔢 🖥️ 🔍 💡 ✈️ 🚗 🏨 🏖️ 🗺️ ⛰️ 🏟️ 🗼 📸 🌍 🚢 🚲",
     "Hành chính": "📑 🏛️ ⚖️ 📨 📞 🏢 ✉️ 📜 🗃️ 🔐 📢 🖋️ 🗂️ 📅 💼 🔑 📁 🗳️ ✒️ 🗞️",
     "Fanpage": "❤️ 🔥 ✅ 🚀 📍 📞 💎 ⚡ ✨ 🌟 🚩 📌 🎁 🛒 📩 💯 🆗 📣 💥 🌈 🎀 🎊"
 }
+
+def transform_text(text, style):
+    if not text or style == "Chữ thường":
+        return text
+    
+    # Sử dụng HTML để đảm bảo chữ Đ và các chữ có dấu hiển thị chuẩn 100%[cite: 2]
+    if style == "In đậm":
+        return f"<b>{text}</b>"
+    elif style == "In nghiêng":
+        return f"<i>{text}</i>"
+    elif style == "Gạch chân":
+        return f"<u>{text}</u>"
+    return text
+
+# Nhập liệu
+input_text = st.text_area("📌 Nhập nội dung", height=120, key="main_input")
+style = st.radio("🎨 Chọn kiểu chữ", ["Chữ thường", "In đậm", "In nghiêng", "Gạch chân"], horizontal=True)
+
+if input_text:
+    output = transform_text(input_text, style)
+    st.markdown("### ✅ Kết quả")
+    
+    # ĐÃ SỬA: Cỡ chữ kết quả 16px khớp với cỡ chữ nhập vào[cite: 2]
+    st.markdown(f"""
+        <div style='font-size:16px; padding:10px; border:1px solid #ddd; border-radius:5px; background-color: #f9f9f9;'>
+            {output}
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Cung cấp dạng text thuần để copy nhanh nếu cần[cite: 2]
+    st.info("Để giữ định dạng Đậm/Nghiêng sang Word/Fanpage, hãy bôi đen trực tiếp nội dung ở khung phía trên rồi Copy.")
+    if style == "Gạch chân":
+        plain_output = "".join([c + "\u0332" for c in input_text])
+    else:
+        plain_output = input_text 
+    st.code(plain_output, language="text")
+
+st.write("---")
+# ĐÃ SỬA: Tên tiêu đề theo yêu cầu[cite: 2]
+st.write("💡 **Emoji chọn lọc:**")
 tabs = st.tabs(list(EMOJI_LIST.keys()))
 for i, tab in enumerate(tabs):
     with tab:

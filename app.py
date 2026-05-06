@@ -33,37 +33,37 @@ input_text = st.text_area("📌 Nhập nội dung", height=120, key="main_input"
 style = st.radio("🎨 Chọn kiểu chữ", ["Chữ thường", "In đậm", "In nghiêng", "Gạch chân"], horizontal=True)
 
 if input_text:
-    output = transform_text(input_text, style)
+    output_html = transform_text(input_text, style)
     st.markdown("### ✅ Kết quả")
     
-    # SỬA CỠ CHỮ: Dùng !important để đảm bảo cỡ chữ không bị to hơn khung nhập liệu[cite: 1]
-    st.markdown(f"""
-        <div id="target-copy" style="font-size: 14px !important; font-family: sans-serif !important; padding: 10px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9; color: #31333F;">
-            {output}
+    # SỬA CỠ CHỮ: Dùng 'inherit' để tự động bằng với cỡ chữ gốc của khung nhập liệu
+    # Nhúng nút Copy bằng JS trực tiếp vào khối kết quả để đảm bảo hoạt động
+    custom_html = f"""
+    <div id="wrapper" style="border: 1px solid #ddd; border-radius: 5px; padding: 10px; background-color: #f9f9f9;">
+        <div id="content" style="font-size: inherit; font-family: sans-serif; color: #31333F; margin-bottom: 10px;">
+            {output_html}
         </div>
-    """, unsafe_allow_html=True)
-    
-    # SỬA NÚT COPY: JavaScript tự động bôi đen và copy định dạng (không hiện thông báo OK)[cite: 1]
-    st.write("")
-    copy_js = f"""
-    <button onclick="copyFunction()" style="cursor:pointer; background-color:#4CAF50; color:white; border:none; padding:10px 20px; border-radius:5px; font-size:14px;">
-        📋 Nhấn để Copy nội dung (Giữ định dạng)
-    </button>
+        <button onclick="copyRichText()" style="cursor:pointer; background-color:#4CAF50; color:white; border:none; padding:5px 12px; border-radius:4px; font-size: 14px;">
+            📋 Copy định dạng
+        </button>
+    </div>
 
     <script>
-    function copyFunction() {{
-        var doc = parent.document;
-        var element = doc.getElementById('target-copy');
-        var range = doc.createRange();
-        range.selectNode(element);
+    function copyRichText() {{
+        var range = document.createRange();
+        var node = document.getElementById("content");
+        range.selectNode(node);
         window.getSelection().removeAllRanges();
         window.getSelection().addRange(range);
-        doc.execCommand('copy');
+        document.execCommand("copy");
         window.getSelection().removeAllRanges();
+        // Không dùng alert gây phiền, chỉ đổi màu nút để báo hiệu
+        event.target.innerText = "✅ Đã copy!";
+        setTimeout(() => {{ event.target.innerText = "📋 Copy định dạng"; }}, 2000);
     }}
     </script>
     """
-    components.html(copy_js, height=50)
+    components.html(custom_html, height=120)
 
 st.write("---")
 st.write("💡 **Emoji chọn lọc:**")

@@ -10,7 +10,7 @@ example_text = "Ngày 06/5/2026 họp Chuyển đổi số tại Phòng Hội th
 if st.button(f"✨ Dùng thử nhanh: {example_text}"):
     st.session_state["main_input"] = example_text
 
-# Danh sách Emoji - GIỮ NGUYÊN[cite: 2]
+# Danh sách Emoji - GIỮ NGUYÊN
 EMOJI_GROUPS = {
     "Giáo dục & Y tế": ["🎓", "📖", "📝", "🏫", "📚", "🖊️", "🎒", "👨‍🏫", "👩‍🏫", "🩺", "🏥", "💉", "💊", "🧬", "🚑", "🧪", "🌡️", "🧠", "🩹"],
     "Dữ liệu & Du lịch": ["📈", "📉", "📊", "📋", "📂", "💻", "🔢", "🖥️", "🔍", "💡", "✈️", "🚗", "🏨", "🏖️", "🗺️", "⛰️", "🏟️", "🗼", "📸", "🌍", "🚢", "🚲"],
@@ -18,7 +18,7 @@ EMOJI_GROUPS = {
     "Fanpage": ["❤️", "🔥", "✅", "🚀", "📍", "📞", "💎", "⚡", "✨", "🌟", "🚩", "📌", "🎁", "🛒", "📩", "💯", "🆗", "📣", "💥", "🌈", "🎀", "🎊"]
 }
 
-# Hàm chuyển đổi hiển thị HTML (dùng cho bôi đen copy sang Word) - GIỮ NGUYÊN[cite: 2]
+# Hàm hiển thị HTML cho Word - GIỮ NGUYÊN[cite: 2]
 def transform_text(text, style):
     if not text or style == "Chữ thường":
         return text
@@ -30,50 +30,58 @@ def transform_text(text, style):
         return f"<u>{text}</u>"
     return text
 
-# Logic Unicode để dán vào Fanpage/Zalo vẫn giữ định dạng
-def to_unicode_style(text, style):
+# SỬA LỖI: Hàm chuyển đổi Unicode hỗ trợ đầy đủ Tiếng Việt cho Fanpage/Zalo
+def full_unicode_transform(text, style):
     if not text or style == "Chữ thường": return text
-    # Maps chuẩn để Facebook/Zalo không thể đưa về chữ thường[cite: 1]
-    maps = {
-        "In đậm": ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789", 
-                   "𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳𝟎𝟏𝟐𝟑𝟒𝟓𝟔𝟕𝟖𝟗"),
-        "In nghiêng": ("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 
-                      "𝘈𝘉𝘊𝘋𝘌𝘍𝘎𝘏𝘐𝘑𝘒𝘓𝘔𝘕𝘖𝘗𝘘𝘙𝘚𝘛𝘜𝘝𝘞𝘟𝘠𝘡𝘢𝘣𝘤𝘥𝘦𝘧𝘨𝘩𝘪𝘫𝘬𝘭𝘮𝘯𝘰𝘱𝘲𝘳𝘴𝘵𝘶𝘷𝘸ｘ𝘺𝘻")
-    }
-    if style == "Gạch chân":
-        return "".join([c + "\u0332" for c in text])
-    if style in maps:
-        c_from, c_to = maps[style]
-        table = str.maketrans(c_from, c_to)
-        return text.translate(table)
-    return text
+    
+    # Bảng mã Latin chuẩn[cite: 1]
+    latin = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    bold = "𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳𝟎𝟏𝟐𝟑𝟒𝟓𝟔𝟕𝟖𝟗"
+    italic = "𝘈𝘉𝘊𝘋𝘌𝘍𝘎𝘏𝘐𝘑𝘒𝘓𝘔𝘕𝘖𝘗𝘘𝘙𝘚𝘛𝘜𝘝𝘞𝘟𝘠𝘡𝘢𝘣𝘤𝘥𝘦𝘧𝘨𝘩𝘪𝘫𝘬𝘭𝘮𝘯𝘰𝘱𝘲𝘳𝘴𝘵𝘶𝘷𝘸ｘ𝘺𝘻0123456789"
+    
+    mapping = ""
+    if style == "In đậm": mapping = bold
+    elif style == "In nghiêng": mapping = italic
+    elif style == "Gạch chân": return "".join([c + "\u0332" for c in text])
+    else: return text
+
+    table = str.maketrans(latin, mapping)
+    
+    # Xử lý ký tự có dấu bằng cách tách dấu và áp dụng kiểu cho chữ cái gốc
+    import unicodedata
+    normalized_text = unicodedata.normalize('NFD', text)
+    transformed_text = ""
+    for char in normalized_text:
+        # Nếu là chữ cái Latin thì chuyển đổi, nếu là dấu thì giữ nguyên để nó "dính" vào chữ trước đó[cite: 1]
+        transformed_text += char.translate(table)
+    
+    return unicodedata.normalize('NFC', transformed_text)
 
 input_text = st.text_area("📌 Nhập nội dung", height=120, key="main_input")
 style = st.radio("🎨 Chọn kiểu chữ", ["Chữ thường", "In đậm", "In nghiêng", "Gạch chân"], horizontal=True)
 
 if input_text:
     output_html = transform_text(input_text, style)
-    # Tạo sẵn chuỗi Unicode để nút bấm copy dùng[cite: 1]
-    unicode_str = to_unicode_style(input_text, style).replace("'", "\\'").replace("\n", "\\n")
+    # Chuẩn bị sẵn văn bản Unicode để dán mọi nơi[cite: 1]
+    copy_val = full_unicode_transform(input_text, style).replace("'", "\\'").replace("\n", "\\n")
     
     st.markdown("### ✅ Kết quả")
     
-    # Khung hiển thị - Sửa nút bấm để copy dạng Unicode giúp dán được mọi nơi
     custom_html = f"""
     <div id="wrapper" style="border: 1px solid #ddd; border-radius: 5px; padding: 10px; background-color: #f9f9f9;">
         <div id="content" style="font-size: inherit; font-family: sans-serif; color: #31333F; margin-bottom: 10px;">
             {output_html}
         </div>
-        <button onclick="copyToClipboard()" style="cursor:pointer; background-color:#4CAF50; color:white; border:none; padding:5px 12px; border-radius:4px; font-size: 14px;">
-            📋 Copy (Dán được Fanpage/Zalo/Word)
+        <button onclick="copyAll()" style="cursor:pointer; background-color:#4CAF50; color:white; border:none; padding:5px 12px; border-radius:4px; font-size: 14px;">
+            📋 Nhấn để Copy (Dán được Fanpage/Zalo/Word)
         </button>
     </div>
     <script>
-    function copyToClipboard() {{
-        const text = `{unicode_str}`;
+    function copyAll() {{
+        const text = `{copy_val}`;
         navigator.clipboard.writeText(text).then(() => {{
-            event.target.innerText = "✅ Đã copy!";
-            setTimeout(() => {{ event.target.innerText = "📋 Copy (Dán được Fanpage/Zalo/Word)"; }}, 2000);
+            event.target.innerText = "✅ Đã copy xong!";
+            setTimeout(() => {{ event.target.innerText = "📋 Nhấn để Copy (Dán được Fanpage/Zalo/Word)"; }}, 2000);
         }});
     }}
     </script>

@@ -10,7 +10,7 @@ example_text = "Ngày 06/5/2026 họp Chuyển đổi số tại Phòng Hội th
 if st.button(f"✨ Dùng thử nhanh: {example_text}"):
     st.session_state["main_input"] = example_text
 
-# Danh sách Emoji được tách rời để tạo nút bấm riêng
+# Danh sách Emoji
 EMOJI_GROUPS = {
     "Giáo dục & Y tế": ["🎓", "📖", "📝", "🏫", "📚", "🖊️", "🎒", "👨‍🏫", "👩‍🏫", "🩺", "🏥", "💉", "💊", "🧬", "🚑", "🧪", "🌡️", "🧠", "🩹"],
     "Dữ liệu & Du lịch": ["📈", "📉", "📊", "📋", "📂", "💻", "🔢", "🖥️", "🔍", "💡", "✈️", "🚗", "🏨", "🏖️", "🗺️", "⛰️", "🏟️", "🗼", "📸", "🌍", "🚢", "🚲"],
@@ -36,7 +36,7 @@ if input_text:
     output_html = transform_text(input_text, style)
     st.markdown("### ✅ Kết quả")
     
-    # Cỡ chữ inherit tự động khớp với khung nhập liệu
+    # Cỡ chữ inherit để khớp hoàn toàn với khung nhập liệu
     custom_html = f"""
     <div id="wrapper" style="border: 1px solid #ddd; border-radius: 5px; padding: 10px; background-color: #f9f9f9;">
         <div id="content" style="font-size: inherit; font-family: sans-serif; color: #31333F; margin-bottom: 10px;">
@@ -63,26 +63,24 @@ if input_text:
     components.html(custom_html, height=100)
 
 st.write("---")
-st.write("💡 **Emoji chọn lọc:**")
+# Đã đổi tên tiêu đề theo yêu cầu của bạn
+st.write("💡 **Emoji chọn lọc (nhấn/chọn vào để Copy):**")
 
-# SỬA: Thay đổi cách copy Emoji để giữ màu và không copy cả hàng
 tabs = st.tabs(list(EMOJI_GROUPS.keys()))
 for i, tab in enumerate(tabs):
     group_name = list(EMOJI_GROUPS.keys())[i]
     with tab:
-        cols = st.columns(10) # Chia thành các ô nhỏ để nhấn copy từng cái
+        cols = st.columns(10)
         for idx, emoji in enumerate(EMOJI_GROUPS[group_name]):
             with cols[idx % 10]:
-                if st.button(emoji, key=f"emo_{group_name}_{idx}"):
-                    # Dùng mẹo ẩn khung copy để giữ màu cho Emoji
-                    components.html(f"""
-                        <script>
-                        const el = document.createElement('textarea');
-                        el.value = '{emoji}';
-                        document.body.appendChild(el);
-                        el.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(el);
-                        </script>
-                    """, height=0)
-                    st.toast(f"Đã copy {emoji}")
+                # Nút bấm Emoji sử dụng JavaScript trực tiếp để đảm bảo dán được 100%
+                st.components.v1.html(f"""
+                    <button onclick="copyEmoji('{emoji}')" style="font-size:20px; border:none; background:none; cursor:pointer; width:100%; height:100%;">
+                        {emoji}
+                    </button>
+                    <script>
+                    function copyEmoji(emo) {{
+                        navigator.clipboard.writeText(emo);
+                    }}
+                    </script>
+                """, height=40)

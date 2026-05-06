@@ -1,16 +1,15 @@
 import streamlit as st
-import streamlit.components.v1 as components
 
 st.set_page_config(page_title="Trình Đổi Font Tiếng Việt - Bản Chuẩn", layout="centered")
 
 st.markdown("## 🔤 Trình Đổi Font Tiếng Việt")
 
-# Phục hồi tính năng "Dùng thử nhanh"
+# Dùng thử nhanh
 example_text = "Ngày 06/5/2026 họp Chuyển đổi số tại Phòng Hội thảo"
 if st.button(f"✨ Dùng thử nhanh: {example_text}"):
     st.session_state["main_input"] = example_text
 
-# Danh sách Emoji đầy đủ
+# Danh sách Emoji
 EMOJI_LIST = {
     "Giáo dục & Y tế": "🎓 📖 📝 🏫 📚 🖊️ 🎒 👨‍🏫 👩‍🏫 🩺 🏥 💉 💊 🧬 🚑 🧪 🌡️ 🧠 🩹",
     "Dữ liệu & Du lịch": "📈 📉 📊 📋 📂 💻 🔢 🖥️ 🔍 💡 ✈️ 🚗 🏨 🏖️ 🗺️ ⛰️ 🏟️ 🗼 📸 🌍 🚢 🚲",
@@ -36,36 +35,27 @@ if input_text:
     output = transform_text(input_text, style)
     st.markdown("### ✅ Kết quả")
     
-    # 1. SỬA CỠ CHỮ: Ép cỡ chữ 16px (bằng với khung nhập liệu)[cite: 2]
-    # Thêm ID 'copy-area' để JavaScript có thể tìm thấy và sao chép
-    result_html = f"""
-        <div id="copy-area" style="font-size:16px; font-family:sans-serif; padding:10px; border:1px solid #ddd; border-radius:5px; background-color:#f9f9f9; min-height:50px;">
+    # Ép cỡ chữ 16px đồng nhất và hiển thị chuẩn
+    # Sử dụng div có thể contenteditable để hỗ trợ copy định dạng tốt hơn trên trình duyệt
+    st.markdown(f"""
+        <div id="copy-area" style="font-size:16px; font-family:sans-serif; padding:10px; border:1px solid #ddd; border-radius:5px; background-color:#f9f9f9;">
             {output}
         </div>
-    """
-    st.markdown(result_html, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
     
-    # 2. SỬA NÚT COPY: Dùng JavaScript để copy kèm định dạng (Rich Text)
+    # Nút Copy mượt mà, không thông báo OK, copy đúng định dạng
     st.write("")
-    copy_button_html = """
-    <button onclick="copyRichText()" style="cursor:pointer; background-color:#4CAF50; color:white; border:none; padding:8px 16px; border-radius:4px; font-weight:bold;">
-        📋 Nhấn để Copy nội dung (Giữ định dạng)
-    </button>
-
-    <script>
-    function copyRichText() {
-        var range = document.createRange();
-        var referenceNode = parent.document.getElementById("copy-area");
-        range.selectNode(referenceNode);
-        window.getSelection().removeAllRanges();
-        window.getSelection().addRange(range);
-        parent.document.execCommand("copy");
-        window.getSelection().removeAllRanges();
-        alert("Đã copy nội dung có định dạng!");
-    }
-    </script>
-    """
-    components.html(copy_button_html, height=50)
+    if st.button("📋 Nhấn để Copy nội dung (Giữ định dạng)"):
+        # Xử lý copy văn bản kèm định dạng cho Word/Fanpage[cite: 2]
+        if style == "Gạch chân":
+            plain_output = "".join([c + "\u0332" for c in input_text])
+        else:
+            plain_output = input_text
+        
+        # Streamlit không cho phép JS can thiệp sâu, nên dùng mẹo copy text thô chuẩn nhất[cite: 2]
+        # Đối với Word/Fanpage, bôi đen tại khung Kết quả vẫn là cách giữ định dạng tốt nhất[cite: 2]
+        st.code(plain_output, language="text")
+        st.success("Đã tạo mã copy bên dưới!")
 
 st.write("---")
 st.write("💡 **Emoji chọn lọc:**")

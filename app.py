@@ -6,7 +6,7 @@ st.set_page_config(
     layout="centered"
 )
 
-st.title("🔤 Đổi Font Chữ Facebook (Hỗ trợ Tiếng Việt)")
+st.title("🔤 Đổi Font Chữ ")
 st.write("Dán nội dung có dấu vào đây")
 
 def build_font_map(start_upper, start_lower=None):
